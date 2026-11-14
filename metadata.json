@@ -1,0 +1,6 @@
+{
+  "name": "MeghaGuide",
+  "description": "Meghalaya tourism platform to discover places and events, explore local homestays, and compare ride and guide offers from local providers.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
