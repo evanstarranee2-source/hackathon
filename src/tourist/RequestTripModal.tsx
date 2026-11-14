@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
+import { createTripRequest } from '../shared/api';
 import type { RequestType, TripRequest } from '../types';
 
 interface RequestTripModalProps {
@@ -53,27 +54,18 @@ export function RequestTripModal({
 
     setSubmitting(true);
     try {
-      const res = await fetch('/api/requests', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          touristName,
-          touristContact,
-          requestType,
-          origin,
-          destination,
-          travelDate,
-          durationDays,
-          groupSize,
-          budgetMaxInr,
-          notes,
-        }),
+      const created = await createTripRequest({
+        touristName,
+        touristContact,
+        requestType,
+        origin,
+        destination,
+        travelDate,
+        durationDays,
+        groupSize,
+        budgetMaxInr,
+        notes,
       });
-      if (!res.ok) {
-        const data = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(data.error || 'Could not publish trip request.');
-      }
-      const created = (await res.json()) as TripRequest;
       setTouristName('');
       setTouristContact('');
       setNotes('');
