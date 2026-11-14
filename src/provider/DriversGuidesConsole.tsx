@@ -7,8 +7,7 @@ import type {
 
 interface DriversGuidesConsoleProps {
   providers: ProviderProfile[];
-  activeProviderId: string;
-  onSelectProviderId: (id: string) => void;
+  defaultProviderId?: string;
   requests: TripRequest[];
   offers: ProviderOffer[];
   onSubmitOffer: (
@@ -29,8 +28,7 @@ interface DriversGuidesConsoleProps {
 
 export function DriversGuidesConsole({
   providers,
-  activeProviderId,
-  onSelectProviderId,
+  defaultProviderId,
   requests,
   offers,
   onSubmitOffer,
@@ -38,6 +36,9 @@ export function DriversGuidesConsole({
   onError,
 }: DriversGuidesConsoleProps) {
   const [quotingRequestId, setQuotingRequestId] = useState<string | null>(null);
+  const [selectedProviderId, setSelectedProviderId] = useState<string>(
+    defaultProviderId || providers[0]?.id || ''
+  );
   const [quotedPrice, setQuotedPrice] = useState(5200);
   const [pickupTime, setPickupTime] = useState('07:00 AM');
   const [includesFuel, setIncludesFuel] = useState(true);
@@ -46,16 +47,17 @@ export function DriversGuidesConsole({
   const [offerBusy, setOfferBusy] = useState(false);
 
   const openRequests = requests.filter((r) => r.status === 'Open');
-  const activeProvider = providers.find((p) => p.id === activeProviderId) || providers[0];
+  const quoteProvider =
+    providers.find((p) => p.id === (selectedProviderId || defaultProviderId)) || providers[0];
 
   async function handleSendOffer(e: React.FormEvent, reqId: string) {
     e.preventDefault();
-    if (!activeProvider) return;
+    if (!quoteProvider) return;
     onError('');
     setOfferBusy(true);
     try {
       await onSubmitOffer(reqId, {
-        providerId: activeProvider.id,
+        providerId: quoteProvider.id,
         quotedPriceInr: quotedPrice,
         includesFuelOrPermits: includesFuel,
         includedStops: stopsText
@@ -63,12 +65,12 @@ export function DriversGuidesConsole({
           .map((s) => s.trim())
           .filter(Boolean),
         estimatedPickupTime: pickupTime,
-        message: offerMessage || `Available with ${activeProvider.vehicle || 'full local guide support'}.`,
-        vehicleOrGear: activeProvider.vehicle || 'Certified Trekking & Safety Gear',
+        message: offerMessage || `Available with ${quoteProvider.vehicle || 'full local guide support'}.`,
+        vehicleOrGear: quoteProvider.vehicle || 'Certified Trekking & Safety Gear',
       });
       setQuotingRequestId(null);
       setOfferMessage('');
-      onNotify(`Offer submitted by ${activeProvider.name}. Tourists can now compare it in Trip Requests.`);
+      onNotify(`Offer submitted by ${quoteProvider.name}. Tourists can now compare it in Trip Requests.`);
     } catch (err) {
       onError(err instanceof Error ? err.message : 'Failed to submit offer.');
     } finally {
@@ -78,24 +80,6 @@ export function DriversGuidesConsole({
 
   return (
     <div className="space-y-6">
-      <div className="bg-white border border-[#E2E8E5] rounded-xl p-5 flex flex-wrap items-center gap-3">
-        <label htmlFor="acting-provider" className="text-xs font-semibold text-[#3A4A44]">
-          Acting as Provider:
-        </label>
-        <select
-          id="acting-provider"
-          value={activeProvider?.id || ''}
-          onChange={(e) => onSelectProviderId(e.target.value)}
-          className="px-3 py-2 text-sm bg-white border border-[#D4DDD8] rounded-lg focus:outline-none focus:border-[#14533C]"
-        >
-          {providers.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.name} ({p.role} · {p.baseHub})
-            </option>
-          ))}
-        </select>
-      </div>
-
       <div className="space-y-4">
         <h2 className="font-display text-xl font-semibold text-[#131D19]">
           Open Tourist Trip Requests ({openRequests.length})
@@ -108,9 +92,6 @@ export function DriversGuidesConsole({
         ) : (
           <div className="space-y-4">
             {openRequests.map((req) => {
-              const existingOffer = offers.find(
-                (o) => o.requestId === req.id && o.providerId === activeProvider?.id
-              );
               const isQuoting = quotingRequestId === req.id;
               const totalOffers = offers.filter((o) => o.requestId === req.id).length;
 
@@ -133,31 +114,30 @@ export function DriversGuidesConsole({
                         ₹{req.budgetMaxInr.toLocaleString('en-IN')}
                       </div>
                       <div className="text-xs font-mono tabular-nums text-[#52635D] mt-1">
-                        {totalOffers} competing {totalOffers === 1 ? 'offer' : 'offers'}
+                        {totalOffers} {totalOffers === 1 ? 'offer' : 'offers'}
                       </div>
                     </div>
                   </div>
 
                   <div className="pt-3 border-t border-[#E2E8E5] flex flex-wrap items-center justify-between gap-3">
-                    {existingOffer ? (
-                      <span className="text-xs font-medium text-[#14533C]">
-                        You already submitted a quote of ₹{existingOffer.quotedPriceInr.toLocaleString('en-IN')} as {activeProvider?.name}.
-                      </span>
-                    ) : (
-                      <span className="text-xs text-[#52635D]">
-                        Quoting as <strong>{activeProvider?.name}</strong> ({activeProvider?.role})
-                      </span>
-                    )}
+                    <span className="text-xs text-[#52635D]">
+                      {totalOffers > 0
+                        ? `${totalOffers} ${totalOffers === 1 ? 'quote' : 'quotes'} received from local providers`
+                        : 'Open for driver & guide quotes'}
+                    </span>
 
                     <button
                       type="button"
                       onClick={() => {
+                        if (!isQuoting && defaultProviderId) {
+                          setSelectedProviderId(defaultProviderId);
+                        }
                         setQuotingRequestId(isQuoting ? null : req.id);
                         setQuotedPrice(Math.max(1200, Math.round(req.budgetMaxInr * 0.85)));
                       }}
                       className="px-4 py-2 text-xs font-semibold text-white bg-[#14533C] hover:bg-[#0E3F2D] rounded-lg whitespace-nowrap"
                     >
-                      {isQuoting ? 'Cancel Quote' : existingOffer ? 'Submit Another Quote' : 'Send Offer'}
+                      {isQuoting ? 'Cancel Quote' : 'Send Offer'}
                     </button>
                   </div>
 
@@ -166,6 +146,28 @@ export function DriversGuidesConsole({
                       onSubmit={(e) => handleSendOffer(e, req.id)}
                       className="pt-4 border-t border-[#E2E8E5] space-y-4"
                     >
+                      <div>
+                        <label
+                          htmlFor={`offer-provider-${req.id}`}
+                          className="block text-xs font-semibold text-[#3A4A44] mb-1"
+                        >
+                          Provider Profile
+                        </label>
+                        <select
+                          id={`offer-provider-${req.id}`}
+                          value={quoteProvider?.id || ''}
+                          onChange={(e) => setSelectedProviderId(e.target.value)}
+                          className="w-full px-3 py-2 text-sm bg-white border border-[#D4DDD8] rounded-lg focus:outline-none focus:border-[#14533C]"
+                          required
+                        >
+                          {providers.map((p) => (
+                            <option key={p.id} value={p.id}>
+                              {p.name} ({p.role} · {p.baseHub})
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <div>
                           <label className="block text-xs font-semibold text-[#3A4A44] mb-1">
