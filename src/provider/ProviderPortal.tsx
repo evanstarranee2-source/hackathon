@@ -3,6 +3,7 @@ import { CheckCircle2, Menu, X } from 'lucide-react';
 import { DriversGuidesConsole } from './DriversGuidesConsole';
 import { EventOrganizersConsole } from './EventOrganizersConsole';
 import { HomestayHostsConsole } from './HomestayHostsConsole';
+import { RegisterProviderModal } from './RegisterProviderModal';
 import {
   confirmStayInquiry,
   createHomestayListing,
@@ -40,6 +41,7 @@ export function ProviderPortal({
 }: ProviderPortalProps) {
   const [section, setSection] = useState<ProviderSection>('drivers_guides');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [registerModalOpen, setRegisterModalOpen] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -161,10 +163,10 @@ export function ProviderPortal({
           <div className="flex items-center gap-3 shrink-0">
             <button
               type="button"
-              onClick={() => void onRefresh()}
+              onClick={() => setRegisterModalOpen(true)}
               className="px-4 py-2 text-xs font-semibold text-white bg-[#14533C] hover:bg-[#0E3F2D] rounded-lg transition-colors whitespace-nowrap shrink-0"
             >
-              Refresh Requests
+              Register
             </button>
             <button
               type="button"
@@ -283,6 +285,16 @@ export function ProviderPortal({
           </div>
         </div>
       </footer>
+
+      <RegisterProviderModal
+        isOpen={registerModalOpen}
+        onClose={() => setRegisterModalOpen(false)}
+        onRegister={handleCreateProvider}
+        onSuccess={(created) => {
+          setSection('drivers_guides');
+          setFeedback(`Registered ${created.name} (${created.role} · ${created.baseHub}). You can now submit quotes.`);
+        }}
+      />
     </div>
   );
 }
