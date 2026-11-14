@@ -1,15 +1,14 @@
 import React, { useState } from 'react';
-import { Plus } from 'lucide-react';
 import type {
-  Hub,
   ProviderOffer,
   ProviderProfile,
-  ProviderRole,
   TripRequest,
 } from '../types';
 
 interface DriversGuidesConsoleProps {
   providers: ProviderProfile[];
+  activeProviderId: string;
+  onSelectProviderId: (id: string) => void;
   requests: TripRequest[];
   offers: ProviderOffer[];
   onSubmitOffer: (
@@ -24,31 +23,20 @@ interface DriversGuidesConsoleProps {
       vehicleOrGear: string;
     }
   ) => Promise<void>;
-  onCreateProvider: (payload: {
-    name: string;
-    role: ProviderRole;
-    baseHub: Hub;
-    vehicle: string | null;
-    languages: string[];
-    specialties: string[];
-    yearsExperience: number;
-    dailyRateEstimateInr: number;
-    bio: string;
-  }) => Promise<ProviderProfile>;
   onNotify: (msg: string) => void;
   onError: (msg: string) => void;
 }
 
 export function DriversGuidesConsole({
   providers,
+  activeProviderId,
+  onSelectProviderId,
   requests,
   offers,
   onSubmitOffer,
-  onCreateProvider,
   onNotify,
   onError,
 }: DriversGuidesConsoleProps) {
-  const [activeProviderId, setActiveProviderId] = useState<string>(providers[0]?.id || '');
   const [quotingRequestId, setQuotingRequestId] = useState<string | null>(null);
   const [quotedPrice, setQuotedPrice] = useState(5200);
   const [pickupTime, setPickupTime] = useState('07:00 AM');
@@ -56,15 +44,6 @@ export function DriversGuidesConsole({
   const [stopsText, setStopsText] = useState('Umiam Lake, Mawkdok Viewpoint, Nohkalikai Falls');
   const [offerMessage, setOfferMessage] = useState('');
   const [offerBusy, setOfferBusy] = useState(false);
-
-  const [showNewProviderForm, setShowNewProviderForm] = useState(false);
-  const [provName, setProvName] = useState('');
-  const [provRole, setProvRole] = useState<ProviderRole>('Driver & Guide');
-  const [provHub, setProvHub] = useState<Hub>('Shillong');
-  const [provVehicle, setProvVehicle] = useState('Toyota Innova (6-seater)');
-  const [provRate, setProvRate] = useState(3500);
-  const [provYears, setProvYears] = useState(5);
-  const [provBio, setProvBio] = useState('');
 
   const openRequests = requests.filter((r) => r.status === 'Open');
   const activeProvider = providers.find((p) => p.id === activeProviderId) || providers[0];
@@ -97,162 +76,25 @@ export function DriversGuidesConsole({
     }
   }
 
-  async function handleRegisterProvider(e: React.FormEvent) {
-    e.preventDefault();
-    onError('');
-    try {
-      const created = await onCreateProvider({
-        name: provName,
-        role: provRole,
-        baseHub: provHub,
-        vehicle: provRole === 'Guide' ? null : provVehicle,
-        languages: ['Khasi', 'English', 'Hindi'],
-        specialties: [`${provHub} scenic circuits`, 'Local homestay transfers'],
-        yearsExperience: provYears,
-        dailyRateEstimateInr: provRate,
-        bio: provBio || `Local ${provRole.toLowerCase()} operating from ${provHub}.`,
-      });
-      setActiveProviderId(created.id);
-      setShowNewProviderForm(false);
-      setProvName('');
-      setProvBio('');
-      onNotify(`Registered ${created.name} as a local ${created.role}. You can now quote open requests.`);
-    } catch (err) {
-      onError(err instanceof Error ? err.message : 'Could not create provider profile.');
-    }
-  }
-
   return (
     <div className="space-y-6">
-      <div className="bg-white border border-[#E2E8E5] rounded-xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex flex-wrap items-center gap-3">
-          <label htmlFor="acting-provider" className="text-xs font-semibold text-[#3A4A44]">
-            Acting as Provider:
-          </label>
-          <select
-            id="acting-provider"
-            value={activeProvider?.id || ''}
-            onChange={(e) => setActiveProviderId(e.target.value)}
-            className="px-3 py-2 text-sm bg-white border border-[#D4DDD8] rounded-lg focus:outline-none focus:border-[#14533C]"
-          >
-            {providers.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name} ({p.role} · {p.baseHub})
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <button
-          type="button"
-          onClick={() => setShowNewProviderForm((v) => !v)}
-          className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-[#14533C] border border-[#14533C]/30 rounded-lg hover:bg-[#14533C]/5 whitespace-nowrap self-start sm:self-auto"
+      <div className="bg-white border border-[#E2E8E5] rounded-xl p-5 flex flex-wrap items-center gap-3">
+        <label htmlFor="acting-provider" className="text-xs font-semibold text-[#3A4A44]">
+          Acting as Provider:
+        </label>
+        <select
+          id="acting-provider"
+          value={activeProvider?.id || ''}
+          onChange={(e) => onSelectProviderId(e.target.value)}
+          className="px-3 py-2 text-sm bg-white border border-[#D4DDD8] rounded-lg focus:outline-none focus:border-[#14533C]"
         >
-          <Plus className="w-3.5 h-3.5" />
-          {showNewProviderForm ? 'Close Registration' : 'Register New Driver / Guide'}
-        </button>
+          {providers.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.name} ({p.role} · {p.baseHub})
+            </option>
+          ))}
+        </select>
       </div>
-
-      {showNewProviderForm && (
-        <form onSubmit={handleRegisterProvider} className="bg-white border border-[#E2E8E5] rounded-xl p-6 space-y-4">
-          <h2 className="font-display text-xl font-semibold text-[#131D19]">
-            Register Local Driver or Guide Profile
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-[#3A4A44] mb-1.5">Full Name</label>
-              <input
-                type="text"
-                value={provName}
-                onChange={(e) => setProvName(e.target.value)}
-                placeholder="e.g. Bah Wanbor Nongrum"
-                className="w-full px-3.5 py-2 text-sm border border-[#D4DDD8] rounded-lg"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-[#3A4A44] mb-1.5">Role</label>
-              <select
-                value={provRole}
-                onChange={(e) => setProvRole(e.target.value as ProviderRole)}
-                className="w-full px-3.5 py-2 text-sm border border-[#D4DDD8] rounded-lg bg-white"
-              >
-                <option value="Driver & Guide">Driver &amp; Guide</option>
-                <option value="Driver">Driver</option>
-                <option value="Guide">Guide</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-[#3A4A44] mb-1.5">Base Hub</label>
-              <select
-                value={provHub}
-                onChange={(e) => setProvHub(e.target.value as Hub)}
-                className="w-full px-3.5 py-2 text-sm border border-[#D4DDD8] rounded-lg bg-white"
-              >
-                <option value="Shillong">Shillong</option>
-                <option value="Sohra">Sohra</option>
-                <option value="Dawki">Dawki</option>
-                <option value="Jowai">Jowai</option>
-                <option value="Tura">Tura</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {provRole !== 'Guide' && (
-              <div>
-                <label className="block text-xs font-semibold text-[#3A4A44] mb-1.5">Vehicle Model</label>
-                <input
-                  type="text"
-                  value={provVehicle}
-                  onChange={(e) => setProvVehicle(e.target.value)}
-                  className="w-full px-3.5 py-2 text-sm border border-[#D4DDD8] rounded-lg"
-                />
-              </div>
-            )}
-            <div>
-              <label className="block text-xs font-semibold text-[#3A4A44] mb-1.5">Daily Estimate (₹)</label>
-              <input
-                type="number"
-                min={800}
-                value={provRate}
-                onChange={(e) => setProvRate(Number(e.target.value))}
-                className="w-full px-3.5 py-2 text-sm font-mono tabular-nums border border-[#D4DDD8] rounded-lg"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-[#3A4A44] mb-1.5">Years Experience</label>
-              <input
-                type="number"
-                min={1}
-                value={provYears}
-                onChange={(e) => setProvYears(Number(e.target.value))}
-                className="w-full px-3.5 py-2 text-sm font-mono tabular-nums border border-[#D4DDD8] rounded-lg"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-[#3A4A44] mb-1.5">Short Bio</label>
-            <textarea
-              rows={2}
-              value={provBio}
-              onChange={(e) => setProvBio(e.target.value)}
-              placeholder="Routes you know best, trekking certifications, or vehicle comfort details..."
-              className="w-full px-3.5 py-2 text-sm border border-[#D4DDD8] rounded-lg"
-            />
-          </div>
-
-          <div className="flex justify-end">
-            <button
-              type="submit"
-              className="px-5 py-2 text-xs font-semibold text-white bg-[#14533C] hover:bg-[#0E3F2D] rounded-lg"
-            >
-              Save Provider Profile
-            </button>
-          </div>
-        </form>
-      )}
 
       <div className="space-y-4">
         <h2 className="font-display text-xl font-semibold text-[#131D19]">

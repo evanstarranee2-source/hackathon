@@ -40,6 +40,7 @@ export function ProviderPortal({
   onRefresh,
 }: ProviderPortalProps) {
   const [section, setSection] = useState<ProviderSection>('drivers_guides');
+  const [activeProviderId, setActiveProviderId] = useState<string>(data.providers[0]?.id || '');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [registerModalOpen, setRegisterModalOpen] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
@@ -235,10 +236,11 @@ export function ProviderPortal({
         {section === 'drivers_guides' && (
           <DriversGuidesConsole
             providers={data.providers}
+            activeProviderId={activeProviderId}
+            onSelectProviderId={setActiveProviderId}
             requests={data.requests}
             offers={data.offers}
             onSubmitOffer={handleSubmitOffer}
-            onCreateProvider={handleCreateProvider}
             onNotify={(msg) => setFeedback(msg || null)}
             onError={(msg) => setError(msg || null)}
           />
@@ -291,6 +293,7 @@ export function ProviderPortal({
         onClose={() => setRegisterModalOpen(false)}
         onRegister={handleCreateProvider}
         onSuccess={(created) => {
+          setActiveProviderId(created.id);
           setSection('drivers_guides');
           setFeedback(`Registered ${created.name} (${created.role} · ${created.baseHub}). You can now submit quotes.`);
         }}
