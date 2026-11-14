@@ -9,7 +9,6 @@ interface TripRequestsViewProps {
   onSelectRequest: (id: string) => void;
   onOpenRequestModal: (destination?: string, requestType?: RequestType) => void;
   onAcceptOffer: (requestId: string, offerId: string) => Promise<void>;
-  onSwitchToProviderHub: () => void;
 }
 
 type SortKey = 'price_asc' | 'rating_desc' | 'trips_desc';
@@ -21,7 +20,6 @@ export function TripRequestsView({
   onSelectRequest,
   onOpenRequestModal,
   onAcceptOffer,
-  onSwitchToProviderHub,
 }: TripRequestsViewProps) {
   const [sortBy, setSortBy] = useState<SortKey>('price_asc');
   const [acceptingId, setAcceptingId] = useState<string | null>(null);
@@ -184,15 +182,11 @@ export function TripRequestsView({
                   <span className="font-mono tabular-nums">
                     Duration: {activeRequest.durationDays} day(s) · Group: {activeRequest.groupSize} travelers
                   </span>
-                  {activeRequest.status === 'Open' && (
-                    <button
-                      type="button"
-                      onClick={onSwitchToProviderHub}
-                      className="font-semibold text-[#14533C] hover:underline"
-                    >
-                      Are you a local driver/guide? Quote this trip in Provider Hub →
-                    </button>
-                  )}
+                  <span>
+                    {activeRequest.status === 'Open'
+                      ? 'Accepting quotes from local drivers and guides'
+                      : 'Provider confirmed for this trip'}
+                  </span>
                 </div>
               </div>
 
@@ -228,17 +222,10 @@ export function TripRequestsView({
                 </div>
 
                 {requestOffers.length === 0 ? (
-                  <div className="bg-white border border-[#E2E8E5] rounded-xl p-8 text-center space-y-3">
+                  <div className="bg-white border border-[#E2E8E5] rounded-xl p-8 text-center">
                     <p className="text-sm text-[#52635D]">
-                      Waiting for local drivers and guides to respond to this trip request.
+                      Your trip request is live. Local drivers and guides will send quotes here soon.
                     </p>
-                    <button
-                      type="button"
-                      onClick={onSwitchToProviderHub}
-                      className="px-4 py-2 text-xs font-semibold text-[#14533C] border border-[#14533C]/30 rounded-lg hover:bg-[#14533C]/5"
-                    >
-                      Submit an Offer as a Local Provider
-                    </button>
                   </div>
                 ) : (
                   <>

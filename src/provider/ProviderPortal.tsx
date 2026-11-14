@@ -26,7 +26,6 @@ export type ProviderSection = 'drivers_guides' | 'homestay_hosts' | 'event_organ
 interface ProviderPortalProps {
   data: MarketplaceSnapshot;
   onRefresh: () => Promise<void>;
-  onSwitchToTouristPortal: (selectedRequestId?: string) => void;
 }
 
 const PROVIDER_NAV: { id: ProviderSection; label: string }[] = [
@@ -38,7 +37,6 @@ const PROVIDER_NAV: { id: ProviderSection; label: string }[] = [
 export function ProviderPortal({
   data,
   onRefresh,
-  onSwitchToTouristPortal,
 }: ProviderPortalProps) {
   const [section, setSection] = useState<ProviderSection>('drivers_guides');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -137,7 +135,7 @@ export function ProviderPortal({
             onClick={() => handleNavigate('drivers_guides')}
             className="font-display text-xl font-bold tracking-tight text-[#131D19] whitespace-nowrap shrink-0 text-left"
           >
-            MeghaGuide
+            MeghaGuide Partner
           </button>
 
           <nav className="hidden md:flex items-center gap-7" aria-label="Provider Navigation">
@@ -163,10 +161,10 @@ export function ProviderPortal({
           <div className="flex items-center gap-3 shrink-0">
             <button
               type="button"
-              onClick={() => onSwitchToTouristPortal()}
+              onClick={() => void onRefresh()}
               className="px-4 py-2 text-xs font-semibold text-white bg-[#14533C] hover:bg-[#0E3F2D] rounded-lg transition-colors whitespace-nowrap shrink-0"
             >
-              Tourist View
+              Refresh Requests
             </button>
             <button
               type="button"
@@ -201,7 +199,7 @@ export function ProviderPortal({
 
       <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-8">
         <div className="border-b border-[#E2E8E5] pb-5">
-          <p className="text-xs font-medium text-[#52635D]">Local Provider Workspace</p>
+          <p className="text-xs font-medium text-[#52635D]">Local Provider Website</p>
           <h1 className="font-display text-3xl font-semibold text-[#131D19] mt-1">
             {section === 'drivers_guides'
               ? 'Drivers & Guides Dispatch'
@@ -241,7 +239,6 @@ export function ProviderPortal({
             onCreateProvider={handleCreateProvider}
             onNotify={(msg) => setFeedback(msg || null)}
             onError={(msg) => setError(msg || null)}
-            onInspectRequestInTouristView={(reqId) => onSwitchToTouristPortal(reqId)}
           />
         )}
 
@@ -269,8 +266,8 @@ export function ProviderPortal({
       <footer className="border-t border-[#E2E8E5] bg-white">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-xs text-[#52635D]">
           <div className="space-y-1">
-            <div className="font-display text-base font-semibold text-[#131D19]">MeghaGuide</div>
-            <div>Provider workspace for Meghalaya drivers, guides, homestay hosts, and event organizers.</div>
+            <div className="font-display text-base font-semibold text-[#131D19]">MeghaGuide Partner</div>
+            <div>Provider website for Meghalaya drivers, guides, homestay hosts, and event organizers.</div>
           </div>
           <div className="flex flex-wrap items-center gap-5">
             {PROVIDER_NAV.map((item) => (
@@ -283,13 +280,6 @@ export function ProviderPortal({
                 {item.label}
               </button>
             ))}
-            <button
-              type="button"
-              onClick={() => onSwitchToTouristPortal()}
-              className="font-semibold text-[#14533C] hover:underline whitespace-nowrap"
-            >
-              Switch to Tourist View
-            </button>
           </div>
         </div>
       </footer>

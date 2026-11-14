@@ -124,7 +124,7 @@ export function StaysView({ homestays, onSubmitInquiry }: StaysViewProps) {
           <div className="flex items-center gap-2.5">
             <CheckCircle2 className="w-4 h-4 shrink-0" />
             <span>
-              Inquiry sent to the host of <strong>{confirmedStayName}</strong>. Hosts respond and confirm directly in the Provider Hub.
+              Inquiry sent to the host of <strong>{confirmedStayName}</strong>. They will review your dates and confirm shortly.
             </span>
           </div>
           <button

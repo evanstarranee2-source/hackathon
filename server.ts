@@ -756,17 +756,45 @@ async function startServer() {
   });
 
   const distDir = path.join(process.cwd(), 'dist');
-  const isProd = process.env.NODE_ENV === 'production' && fs.existsSync(path.join(distDir, 'index.html'));
+  const isProd =
+    process.env.NODE_ENV === 'production' &&
+    fs.existsSync(path.join(distDir, 'index.html')) &&
+    fs.existsSync(path.join(distDir, 'provider.html'));
 
   if (!isProd) {
     const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
       server: { middlewareMode: true },
-      appType: 'spa',
+      appType: 'custom',
     });
     app.use(vite.middlewares);
+
+    app.get(['/provider', '/provider.html', '/provider/*'], async (req, res, next) => {
+      try {
+        const htmlPath = path.join(process.cwd(), 'provider.html');
+        const rawHtml = fs.readFileSync(htmlPath, 'utf8');
+        const transformed = await vite.transformIndexHtml(req.originalUrl, rawHtml);
+        res.status(200).set({ 'Content-Type': 'text/html' }).end(transformed);
+      } catch (err) {
+        next(err);
+      }
+    });
+
+    app.get('*', async (req, res, next) => {
+      try {
+        const htmlPath = path.join(process.cwd(), 'index.html');
+        const rawHtml = fs.readFileSync(htmlPath, 'utf8');
+        const transformed = await vite.transformIndexHtml(req.originalUrl, rawHtml);
+        res.status(200).set({ 'Content-Type': 'text/html' }).end(transformed);
+      } catch (err) {
+        next(err);
+      }
+    });
   } else {
     app.use(express.static(distDir));
+    app.get(['/provider', '/provider.html', '/provider/*'], (_req, res) => {
+      res.sendFile(path.join(distDir, 'provider.html'));
+    });
     app.get('*', (_req, res) => {
       res.sendFile(path.join(distDir, 'index.html'));
     });
@@ -774,7 +802,7 @@ async function startServer() {
 
   const PORT = 3000;
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`MeghaGuide server listening on http://0.0.0.0:${PORT}`);
+    console.log(`MeghaGuide servers listening on http://0.0.0.0:${PORT} (Tourist: /, Provider: /provider)`);
   });
 }
 

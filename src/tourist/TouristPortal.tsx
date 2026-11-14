@@ -26,7 +26,6 @@ interface TouristPortalProps {
   selectedRequestId: string | null;
   onSelectRequest: (id: string | null) => void;
   onRefresh: () => Promise<void>;
-  onSwitchToProviderPortal: () => void;
 }
 
 const TOURIST_NAV: { id: TouristSection; label: string }[] = [
@@ -43,7 +42,6 @@ export function TouristPortal({
   selectedRequestId,
   onSelectRequest,
   onRefresh,
-  onSwitchToProviderPortal,
 }: TouristPortalProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [rsvpedEventIds, setRsvpedEventIds] = useState<string[]>([]);
@@ -138,13 +136,6 @@ export function TouristPortal({
                 </button>
               );
             })}
-            <button
-              type="button"
-              onClick={onSwitchToProviderPortal}
-              className="py-1 text-sm font-medium text-[#52635D] border-b-2 border-transparent hover:text-[#131D19] transition-colors whitespace-nowrap shrink-0"
-            >
-              For Providers
-            </button>
           </nav>
 
           <div className="flex items-center gap-3 shrink-0">
@@ -182,16 +173,6 @@ export function TouristPortal({
                 {item.label}
               </button>
             ))}
-            <button
-              type="button"
-              onClick={() => {
-                setMobileMenuOpen(false);
-                onSwitchToProviderPortal();
-              }}
-              className="text-left px-3 py-2.5 text-sm font-medium rounded-lg text-[#465650] hover:bg-[#F2F5F3]"
-            >
-              For Providers
-            </button>
           </nav>
         )}
       </header>
@@ -229,7 +210,6 @@ export function TouristPortal({
             onSelectRequest={(id) => onSelectRequest(id)}
             onOpenRequestModal={(dest, type) => openRequestModal(dest, type)}
             onAcceptOffer={handleAcceptOffer}
-            onSwitchToProviderHub={onSwitchToProviderPortal}
           />
         )}
       </main>
@@ -238,7 +218,7 @@ export function TouristPortal({
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-xs text-[#52635D]">
           <div className="space-y-1">
             <div className="font-display text-base font-semibold text-[#131D19]">MeghaGuide</div>
-            <div>Visitor portal for places, events, homestays, and trip requests across Meghalaya.</div>
+            <div>Visitor website for places, events, homestays, and trip requests across Meghalaya.</div>
           </div>
           <div className="flex flex-wrap items-center gap-5">
             {TOURIST_NAV.map((item) => (
@@ -251,13 +231,6 @@ export function TouristPortal({
                 {item.label}
               </button>
             ))}
-            <button
-              type="button"
-              onClick={onSwitchToProviderPortal}
-              className="font-semibold text-[#14533C] hover:underline whitespace-nowrap"
-            >
-              Switch to Provider Portal
-            </button>
           </div>
         </div>
       </footer>

@@ -37,7 +37,6 @@ interface DriversGuidesConsoleProps {
   }) => Promise<ProviderProfile>;
   onNotify: (msg: string) => void;
   onError: (msg: string) => void;
-  onInspectRequestInTouristView: (requestId: string) => void;
 }
 
 export function DriversGuidesConsole({
@@ -48,7 +47,6 @@ export function DriversGuidesConsole({
   onCreateProvider,
   onNotify,
   onError,
-  onInspectRequestInTouristView,
 }: DriversGuidesConsoleProps) {
   const [activeProviderId, setActiveProviderId] = useState<string>(providers[0]?.id || '');
   const [quotingRequestId, setQuotingRequestId] = useState<string | null>(null);
@@ -292,13 +290,9 @@ export function DriversGuidesConsole({
                       <div className="font-mono text-base font-semibold text-[#131D19] tabular-nums">
                         ₹{req.budgetMaxInr.toLocaleString('en-IN')}
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => onInspectRequestInTouristView(req.id)}
-                        className="text-xs font-semibold text-[#14533C] hover:underline mt-1"
-                      >
-                        View {totalOffers} {totalOffers === 1 ? 'offer' : 'offers'} →
-                      </button>
+                      <div className="text-xs font-mono tabular-nums text-[#52635D] mt-1">
+                        {totalOffers} competing {totalOffers === 1 ? 'offer' : 'offers'}
+                      </div>
                     </div>
                   </div>
 

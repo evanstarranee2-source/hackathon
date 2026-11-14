@@ -1,18 +1,26 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ProviderPortal } from './provider/ProviderPortal';
-import { fetchMarketplaceSnapshot } from './shared/api';
-import { TouristPortal, type TouristSection } from './tourist/TouristPortal';
-import type { MarketplaceSnapshot } from './types';
+import { fetchMarketplaceSnapshot } from '../shared/api';
+import type { MarketplaceSnapshot } from '../types';
+import { TouristPortal, type TouristSection } from './TouristPortal';
 
-type PortalMode = 'tourist' | 'provider';
+function getInitialTouristParams(): { section: TouristSection; requestId: string | null } {
+  const params = new URLSearchParams(window.location.search);
+  const sec = params.get('section');
+  const reqId = params.get('requestId');
+  const validSections: TouristSection[] = ['discover', 'stays', 'providers', 'requests'];
+  return {
+    section: validSections.includes(sec as TouristSection) ? (sec as TouristSection) : 'discover',
+    requestId: reqId || null,
+  };
+}
 
-export default function App() {
-  const [portal, setPortal] = useState<PortalMode>('tourist');
-  const [touristSection, setTouristSection] = useState<TouristSection>('discover');
+export default function TouristApp() {
+  const initial = getInitialTouristParams();
+  const [section, setSection] = useState<TouristSection>(initial.section);
+  const [selectedRequestId, setSelectedRequestId] = useState<string | null>(initial.requestId);
   const [data, setData] = useState<MarketplaceSnapshot | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
 
   const refreshMarketplace = useCallback(async () => {
     try {
@@ -67,35 +75,14 @@ export default function App() {
     );
   }
 
-  if (portal === 'provider') {
-    return (
-      <ProviderPortal
-        data={data}
-        onRefresh={refreshMarketplace}
-        onSwitchToTouristPortal={(reqId) => {
-          if (reqId) {
-            setSelectedRequestId(reqId);
-            setTouristSection('requests');
-          }
-          setPortal('tourist');
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }}
-      />
-    );
-  }
-
   return (
     <TouristPortal
       data={data}
-      section={touristSection}
-      onChangeSection={setTouristSection}
+      section={section}
+      onChangeSection={setSection}
       selectedRequestId={selectedRequestId}
       onSelectRequest={setSelectedRequestId}
       onRefresh={refreshMarketplace}
-      onSwitchToProviderPortal={() => {
-        setPortal('provider');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }}
     />
   );
 }
